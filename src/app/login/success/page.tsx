@@ -6,58 +6,68 @@ import { useRouter, useSearchParams } from "next/navigation";
 export default function LoginSuccess() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [loadingMessage, setLoadingMessage] = useState("Authorizing your account...");
+  const [message, setMessage] = useState("Authorizing your account...");
 
   useEffect(() => {
-    const code = searchParams.get("code"); // 🔹 OAuth code from URL
-    if (!code) return;
+    const code = searchParams.get("code");
+    if (!code) {
+      setMessage("No authorization code found. Redirecting...");
+      setTimeout(() => router.push("/auth/login"), 1500);
+      return;
+    }
 
-    // Step 1️⃣ — Send code to backend to exchange for token
-    fetch("http://localhost:8080/api/auth/exchange", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code }),
-    })
-      .then(async (res) => {
-        if (!res.ok) throw new Error("Code exchange failed");
-        return await res.json();
-      })
-      .then((data) => {
-        // Step 2️⃣ — Save token and role in localStorage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", data.role);
+    const handleOAuthLogin = async () => {
+      try {
+        // 🔹 Step 1 — Send OAuth code to backend
+        const res = await fetch("http://localhost:8080/api/auth/exchange", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code }),
+        });
 
-        setLoadingMessage("Login successful! Redirecting to your dashboard...");
+        if (!res.ok) throw new Error("OAuth exchange failed");
 
-        // Step 3️⃣ — Redirect user based on role
-        const role = data.role?.toLowerCase();
-console.log("User role:", role);
- setTimeout(() => {
-  console.log("completed wait");
-}, 2 * 60 * 1000);
-// Wait 100000088 milliseconds (if that's what you meant)
-setTimeout(() => {
-  if (role === "admin") router.push("/dashboard/admin");
-  else if (role === "recruiter") router.push("/dashboard/recruiter");
-  else router.push("/dashboard/user");
-}, 10008); // <-- this is milliseconds, ~27.7 hours
+        const data = await res.json();
+        const { token, role, user } = data;
 
-      })
-      .catch((err) => {
-        console.error("Exchange error:", err);
-        setLoadingMessage("Login failed. Redirecting to login...");
-        setTimeout(() => router.push("/auth/login"), 1200);
-      });
+        // 🔹 Step 2 — Save login info locally
+        if (token) localStorage.setItem("token", token);
+        if (user) localStorage.setItem("user", JSON.stringify(user));
+        if (role) localStorage.setItem("role", role);
+
+        setMessage("✅ Login successful! Redirecting to your dashboard...");
+
+        // 🔹 Step 3 — Redirect based on backend-assigned role
+        setTimeout(() => {
+          const userRole = role?.toLowerCase() || "user";
+          if (userRole === "admin") router.push("/dashboard/admin");
+          else if (userRole === "recruiter") router.push("/dashboard/recruiter");
+          else router.push("/dashboard/user");
+        }, 1500);
+      } catch (error) {
+        console.error("❌ OAuth Login Error:", error);
+        setMessage("❌ Login failed. Redirecting to login...");
+        setTimeout(() => router.push("/auth/login"), 2000);
+      }
+    };
+
+    handleOAuthLogin();
   }, [router, searchParams]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300">
-      <div className="bg-white rounded-2xl shadow-lg p-10 text-center max-w-md w-full">
-        <h1 className="text-2xl font-semibold text-gray-700 mb-4">Please Wait...</h1>
-        <p className="text-gray-600 animate-pulse">{loadingMessage}</p>
+      <div className="bg-white rounded-2xl shadow-xl p-10 text-center max-w-md w-full transition-all duration-300">
+        <h1 className="text-2xl font-semibold text-gray-800 mb-4">Please Wait...</h1>
+        <p
+          className={`text-gray-600 ${
+            message.includes("✅") ? "text-green-600 font-medium" : ""
+          }`}
+        >
+          {message}
+        </p>
 
         <div className="flex justify-center mt-8">
-          <div className="w-8 h-8 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
     </div>

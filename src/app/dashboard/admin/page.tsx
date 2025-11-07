@@ -21,7 +21,7 @@ import {
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const [adminName] = useState<string>("Saurabh Gupta");
+  const [adminName] = useState("Saurabh Gupta");
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -29,171 +29,177 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-indigo-50 to-indigo-100">
-      {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 bg-white shadow-md border-r border-gray-200">
-        <div className="p-6 border-b">
-          <h2 className="text-2xl font-bold text-indigo-600 tracking-tight">
-            Admin Panel
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">Welcome, {adminName}</p>
+    <div className="flex min-h-screen bg-background text-foreground">
+      {/* ─── Sidebar ─────────────────────────────────────────────── */}
+      <aside className="hidden md:flex md:w-64 flex-col justify-between bg-white border-r border-border shadow-sm fixed h-full">
+        <div>
+          <div className="p-6 border-b border-border">
+            <h1 className="text-xl font-bold tracking-tight text-foreground">
+              Admin Panel
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Welcome, {adminName}
+            </p>
+          </div>
+
+          <nav className="p-4 space-y-1">
+            <SidebarItem
+              icon={<LayoutDashboard size={18} />}
+              label="Dashboard Overview"
+              onClick={() => router.push("/dashboard/admin")}
+              active
+            />
+            <SidebarItem
+              icon={<Users size={18} />}
+              label="Manage Users"
+              onClick={() => router.push("/dashboard/admin/users")}
+            />
+            <SidebarItem
+              icon={<Briefcase size={18} />}
+              label="Job Listings"
+              onClick={() => router.push("/dashboard/admin/jobs")}
+            />
+            <SidebarItem
+              icon={<FileBarChart size={18} />}
+              label="Reports & Analytics"
+              onClick={() => router.push("/dashboard/admin/reports")}
+            />
+            <SidebarItem
+              icon={<Settings size={18} />}
+              label="System Settings"
+              onClick={() => router.push("/dashboard/admin/settings")}
+            />
+          </nav>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-700 hover:bg-indigo-50"
-            onClick={() => router.push("/dashboard/admin")}
-          >
-            <LayoutDashboard className="mr-3 h-5 w-5 text-indigo-500" />
-            Dashboard Overview
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-700 hover:bg-indigo-50"
-            onClick={() => router.push("/dashboard/admin/users")}
-          >
-            <Users className="mr-3 h-5 w-5 text-indigo-500" />
-            Manage Users
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-700 hover:bg-indigo-50"
-            onClick={() => router.push("/dashboard/admin/jobs")}
-          >
-            <Briefcase className="mr-3 h-5 w-5 text-indigo-500" />
-            Job Listings
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-700 hover:bg-indigo-50"
-            onClick={() => router.push("/dashboard/admin/reports")}
-          >
-            <FileBarChart className="mr-3 h-5 w-5 text-indigo-500" />
-            Reports
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-gray-700 hover:bg-indigo-50"
-            onClick={() => router.push("/dashboard/admin/settings")}
-          >
-            <Settings className="mr-3 h-5 w-5 text-indigo-500" />
-            Settings
-          </Button>
-        </nav>
-
-        <div className="p-4 border-t">
+        <div className="p-4 border-t border-border">
           <Button
             variant="destructive"
-            className="w-full flex items-center justify-center"
+            className="w-full flex items-center justify-center gap-2"
             onClick={handleLogout}
           >
-            <LogOut className="mr-2 h-5 w-5" /> Logout
+            <LogOut size={16} /> Logout
           </Button>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 space-y-8 overflow-y-auto">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Admin Dashboard 👑
-          </h1>
-          <p className="text-gray-600 text-sm mt-2 md:mt-0">
-            Logged in as: <span className="font-medium">{adminName}</span>
-          </p>
-        </div>
+      {/* ─── Main Content ───────────────────────────────────────────── */}
+      <main className="flex-1 md:ml-64 px-6 md:px-10 py-10 overflow-y-auto">
+        <div className="max-w-6xl mx-auto space-y-10">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground flex items-center">
+                <LayoutDashboard className="mr-2 h-7 w-7 text-foreground/80" />
+                Admin Dashboard 
+              </h1>
+              <p className="text-muted-foreground mt-2">
+                Manage users, jobs, analytics, and settings efficiently.
+              </p>
+            </div>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Card 1 */}
-          <Card className="hover:shadow-lg transition-all duration-200">
-            <CardHeader>
-              <CardTitle className="flex items-center text-indigo-700">
-                <Users className="mr-2 h-5 w-5" /> Manage Users
-              </CardTitle>
-              <CardDescription>
-                Add, edit, or delete users and assign their roles.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                onClick={() => router.push("/dashboard/admin/users")}
-                className="w-full"
-                variant="outline"
-              >
-                Go to Users
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Cards Section */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            <DashboardCard
+              icon={<Users className="h-5 w-5 mr-2 text-foreground/70" />}
+              title="Manage Users"
+              description="Add, edit, or delete users and assign their roles."
+              buttonLabel="Go to Users"
+              onClick={() => router.push("/dashboard/admin/users")}
+            />
 
-          {/* Card 2 */}
-          <Card className="hover:shadow-lg transition-all duration-200">
-            <CardHeader>
-              <CardTitle className="flex items-center text-indigo-700">
-                <Briefcase className="mr-2 h-5 w-5" /> Job Listings
-              </CardTitle>
-              <CardDescription>
-                Create and manage job opportunities for recruiters.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                onClick={() => router.push("/dashboard/admin/jobs")}
-                className="w-full"
-                variant="outline"
-              >
-                Manage Jobs
-              </Button>
-            </CardContent>
-          </Card>
+            <DashboardCard
+              icon={<Briefcase className="h-5 w-5 mr-2 text-foreground/70" />}
+              title="Job Listings"
+              description="Create and manage job opportunities for recruiters."
+              buttonLabel="Manage Jobs"
+              onClick={() => router.push("/dashboard/admin/jobs")}
+            />
 
-          {/* Card 3 */}
-          <Card className="hover:shadow-lg transition-all duration-200">
-            <CardHeader>
-              <CardTitle className="flex items-center text-indigo-700">
-                <FileBarChart className="mr-2 h-5 w-5" /> Reports
-              </CardTitle>
-              <CardDescription>
-                View analytics and performance data across the platform.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                onClick={() => router.push("/dashboard/admin/reports")}
-                className="w-full"
-                variant="outline"
-              >
-                View Reports
-              </Button>
-            </CardContent>
-          </Card>
+            <DashboardCard
+              icon={<FileBarChart className="h-5 w-5 mr-2 text-foreground/70" />}
+              title="Reports & Analytics"
+              description="View platform performance and analytics data."
+              buttonLabel="View Reports"
+              onClick={() => router.push("/dashboard/admin/reports")}
+            />
 
-          {/* Card 4 */}
-          <Card className="hover:shadow-lg transition-all duration-200">
-            <CardHeader>
-              <CardTitle className="flex items-center text-indigo-700">
-                <Settings className="mr-2 h-5 w-5" /> System Settings
-              </CardTitle>
-              <CardDescription>
-                Configure global preferences and access controls.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                onClick={() => router.push("/dashboard/admin/settings")}
-                className="w-full"
-                variant="outline"
-              >
-                Open Settings
-              </Button>
-            </CardContent>
-          </Card>
+            <DashboardCard
+              icon={<Settings className="h-5 w-5 mr-2 text-foreground/70" />}
+              title="System Settings"
+              description="Configure global preferences and platform settings."
+              buttonLabel="Open Settings"
+              onClick={() => router.push("/dashboard/admin/settings")}
+            />
+          </div>
         </div>
       </main>
     </div>
+  );
+}
+
+/* ─── Sidebar Link Component ───────────────────────────────────────────── */
+function SidebarItem({
+  icon,
+  label,
+  onClick,
+  active = false,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  active?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm transition-colors ${
+        active
+          ? "bg-muted text-foreground font-medium"
+          : "text-foreground/80 hover:bg-muted"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+/* ─── Dashboard Card Component ───────────────────────────────────────────── */
+function DashboardCard({
+  icon,
+  title,
+  description,
+  buttonLabel,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  buttonLabel: string;
+  onClick: () => void;
+}) {
+  return (
+    <Card className="border border-border hover:shadow-md transition-all duration-200 bg-white rounded-xl">
+      <CardHeader>
+        <CardTitle className="flex items-center text-lg font-semibold text-foreground">
+          {icon}
+          {title}
+        </CardTitle>
+        <CardDescription className="text-muted-foreground">
+          {description}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button
+          onClick={onClick}
+          variant="outline"
+          className="w-full mt-2 border-border text-foreground hover:bg-muted"
+        >
+          {buttonLabel}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
