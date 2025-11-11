@@ -38,12 +38,14 @@ export default function RecruiterDashboard() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [recruiterId, setRecruiterId] = useState<number | null>(null);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedId = localStorage.getItem("recruiterId");
-      if (storedId) setRecruiterId(Number(storedId));
-      else setRecruiterId(3);
+      setRecruiterId(storedId ? Number(storedId) : 5);
+      const storedRole = localStorage.getItem("role");
+      setRole(storedRole ? storedRole.toUpperCase() : null);
     }
   }, []);
 
@@ -64,18 +66,52 @@ export default function RecruiterDashboard() {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
       localStorage.removeItem("recruiterId");
+      localStorage.removeItem("role");
     }
     router.push("/auth/login");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!recruiterId) {
+      alert("⚠️ Recruiter ID is missing!");
+      return;
+    }
+
+    // Check user role before sending request
+    if (!role || (role !== "RECRUITER" && role !== "ADMIN")) {
+      alert("❌ Only recruiters or admins can post jobs!");
+      return;
+    }
+
+    // Frontend validation for empty fields
+    const { title, description, skillsRequired, location, experienceLevel, salaryRange } = jobData;
+    if (!title || !description || !skillsRequired || !location || !experienceLevel || !salaryRange) {
+      alert("⚠️ Please fill in all the fields!");
+      return;
+    }
+
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
+      if (!token) throw new Error("Token not found. Please login again.");
+
+      const payload = {
+        recruiterId: Number(recruiterId),
+        title,
+        description,
+        skillsRequired,
+        location,
+        experienceLevel,
+        salaryRange,
+      };
+
+      console.log("Sending job data:", payload);
+
       const response = await axios.post(
         "http://localhost:8080/api/jobs/create",
-        { recruiterId, ...jobData },
+        payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -83,8 +119,10 @@ export default function RecruiterDashboard() {
           },
         }
       );
+
       alert("✅ Job created successfully!");
       console.log("Created Job:", response.data);
+
       setOpen(false);
       setJobData({
         title: "",
@@ -94,9 +132,9 @@ export default function RecruiterDashboard() {
         experienceLevel: "",
         salaryRange: "",
       });
-    } catch (error) {
-      console.error("Error creating job:", error);
-      alert("❌ Failed to create job. Check console for details.");
+    } catch (error: any) {
+      console.error("Error creating job:", error.response?.data || error.message);
+      alert(`❌ Failed to create job: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
     }

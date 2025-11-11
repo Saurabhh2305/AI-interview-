@@ -20,17 +20,14 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // 🔹 Handle input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 🔹 Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const { fullName, email, password, confirmPassword } = formData;
 
-    // Basic validation
     if (!fullName || !email || !password || !confirmPassword) {
       setMessage("⚠️ Please fill all fields.");
       return;
@@ -52,7 +49,6 @@ export default function SignupPage() {
       });
 
       if (res.ok) {
-        // ✅ Only show success message (no auto login or role assignment)
         setMessage("✅ Signup successful! You can now log in.");
         setFormData({
           fullName: "",
@@ -75,22 +71,21 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-gradient-to-br from-gray-50 via-white to-gray-100 overflow-y-auto">
+    <div className="min-h-screen w-full flex flex-col lg:flex-row bg-white overflow-y-auto">
       {/* Left Section - Form */}
       <div className="flex flex-1 items-center justify-center py-10 px-6 sm:px-12 lg:px-16">
-        <Card className="w-full max-w-md bg-white/95 backdrop-blur-md shadow-2xl border border-gray-100 rounded-2xl">
+        <Card className="w-full max-w-md bg-white shadow border border-gray-200 rounded-2xl">
           <CardHeader className="text-center space-y-1">
-            <CardTitle className="text-3xl font-bold text-gray-900">
+            <CardTitle className="text-3xl font-bold text-black">
               Create your account
             </CardTitle>
-            <p className="text-sm text-gray-500">Fill in your details below</p>
+            <p className="text-sm text-gray-600">Fill in your details below</p>
           </CardHeader>
 
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Full Name */}
               <div>
-                <Label>Full Name</Label>
+                <Label className="text-black">Full Name</Label>
                 <Input
                   type="text"
                   name="fullName"
@@ -98,12 +93,12 @@ export default function SignupPage() {
                   onChange={handleChange}
                   placeholder="John Doe"
                   required
+                  
                 />
               </div>
 
-              {/* Email */}
               <div>
-                <Label>Email</Label>
+                <Label className="text-black">Email</Label>
                 <Input
                   type="email"
                   name="email"
@@ -111,12 +106,12 @@ export default function SignupPage() {
                   onChange={handleChange}
                   placeholder="you@example.com"
                   required
+                 
                 />
               </div>
 
-              {/* Password */}
               <div>
-                <Label>Password</Label>
+                <Label className="text-black">Password</Label>
                 <Input
                   type="password"
                   name="password"
@@ -124,12 +119,12 @@ export default function SignupPage() {
                   onChange={handleChange}
                   placeholder="Create password"
                   required
+                
                 />
               </div>
 
-              {/* Confirm Password */}
               <div>
-                <Label>Confirm Password</Label>
+                <Label className="text-black">Confirm Password</Label>
                 <Input
                   type="password"
                   name="confirmPassword"
@@ -137,10 +132,10 @@ export default function SignupPage() {
                   onChange={handleChange}
                   placeholder="Confirm password"
                   required
+                  
                 />
               </div>
 
-              {/* Message */}
               {message && (
                 <p
                   className={`text-center text-sm ${
@@ -155,23 +150,21 @@ export default function SignupPage() {
                 </p>
               )}
 
-              {/* Submit */}
               <Button
                 type="submit"
-                className="w-full mt-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:from-indigo-700 hover:to-blue-700 transition-all duration-300 font-semibold py-2.5"
+                className="w-full mt-2 bg-black text-white hover:bg-gray-800 font-semibold py-2.5"
                 disabled={loading}
               >
                 {loading ? "Creating Account..." : "Create Account"}
               </Button>
 
-              {/* Manual Login Redirect */}
               <div className="text-center mt-4">
                 <p className="text-sm text-gray-600">
                   Already have an account?{" "}
                   <button
                     type="button"
                     onClick={() => router.push("/auth/login")}
-                    className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors"
+                    className="text-black hover:underline font-semibold"
                   >
                     Login here
                   </button>
@@ -182,18 +175,16 @@ export default function SignupPage() {
         </Card>
       </div>
 
-      
-       {/* Right Section (Image & Glow) */}
+      {/* Right Section (Image & Glow) */}
       <div className="relative hidden lg:flex w-1/2 items-center justify-center overflow-hidden">
         <img
           src="/1__k6mS5p92Oanaw7EIdcaow.png"
           alt="AI Interview Background"
           className="absolute inset-0 w-full h-full object-cover scale-105 brightness-100"
         />
-        <div className="absolute top-20 left-20 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-20 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-20 w-72 h-72 bg-black/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-black/10 rounded-full blur-3xl"></div>
       </div>
-    
     </div>
   );
 }

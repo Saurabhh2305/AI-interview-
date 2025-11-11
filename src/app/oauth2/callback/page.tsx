@@ -23,15 +23,16 @@ export default function OAuthCallback() {
         return await res.json();
       })
       .then((data) => {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", data.role);
+        localStorage.setItem("token", data.data.token);
+        localStorage.setItem("role", data.data.user.role);
 
         // Redirect based on role
        // const role = data.role?.toLowerCase();
-        const role = data.user?.role?.toLowerCase();
+        const role = data.data.user.role?.toLowerCase();
 console.log("Role:", role);
-        console.log("jffj "+role);
+        console.log("jffj "+ data.data.user.role);
         console.log("jffj " + JSON.stringify(data));
+        console.log("token "+data.data.token)
         setTimeout(() => {
   console.log("completed wait");
 }, 2 * 60 * 1000);

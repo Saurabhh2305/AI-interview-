@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FaGoogle, FaGithub } from "react-icons/fa";
 
-// 🌐 Backend URLs
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api/users";
-const OAUTH_URL = "http://localhost:8080/oauth2/authorization";
+// Base URLs
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080/api";
+const OAUTH_URL = process.env.NEXT_PUBLIC_OAUTH_URL || "http://localhost:8080/oauth2/authorization";
+
+// Helper function to get token
+const getToken = () => localStorage.getItem("token") || "";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,134 +22,123 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  // 🧭 Check existing session
   useEffect(() => {
-    const userData = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
+    const checkSession = async () => {
+      const token = getToken();
+      const userData = localStorage.getItem("user");
 
-    if (userData && token) {
-      try {
-        fetch(`${BACKEND_URL}/verify-token`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-          .then((res) => {
-            if (res.ok) {
-              const parsed = JSON.parse(userData);
-              redirectByRole(parsed.role);
-            } else {
-              localStorage.clear();
-            }
-          })
-          .finally(() => setCheckingAuth(false));
-      } catch {
-        localStorage.clear();
-        setCheckingAuth(false);
+      if (token && userData) {
+        try {
+          const res = await fetch(`${API_URL}/verify-token`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (res.ok) {
+            const parsedUser = JSON.parse(userData);
+            redirectByRole(parsedUser.role);
+            return;
+          } else {
+            localStorage.clear();
+          }
+        } catch {
+          localStorage.clear();
+        }
       }
-    } else {
       setCheckingAuth(false);
-    }
+    };
+
+    checkSession();
   }, []);
 
-  // 🔁 Redirect user based on role
   const redirectByRole = (role: string) => {
-    switch (role?.toLowerCase()) {
-      case "admin":
-        router.push("/dashboard/admin");
-        break;
-      case "recruiter":
-        router.push("/dashboard/recruiter");
-        break;
-      default:
-        router.push("/dashboard/user");
-        break;
-    }
+    const r = role?.toLowerCase();
+    if (r === "admin") router.push("/dashboard/admin");
+    else if (r === "recruiter") router.push("/dashboard/recruiter");
+    else router.push("/dashboard/user");
   };
 
-  // 🧩 Email/Password Login
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return alert("Please fill in all fields.");
 
     try {
       setLoading(true);
-      const response = await fetch(`${BACKEND_URL}/login`, {
+
+      const response = await fetch(`${API_URL}/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
-      if (!response.ok || !data?.data) {
-        alert(data?.message || "Invalid credentials.");
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        alert(errData?.message || "Invalid credentials");
         return;
       }
 
-      const userData = data.data;
-      localStorage.setItem("user", JSON.stringify(userData));
-      localStorage.setItem("token", userData.token || "");
+      const data = await response.json();
+      if (!data?.data?.token || !data?.data?.user) {
+        alert("Invalid response from server.");
+        return;
+      }
 
-      alert(`✅ Logged in as ${userData.role}`);
-      redirectByRole(userData.role);
+      localStorage.setItem("token", data.data.token);
+      localStorage.setItem("user", JSON.stringify(data.data.user));
+      localStorage.setItem("role", data.data.user.role);
+
+      redirectByRole(data.data.user.role);
     } catch (err) {
       console.error("Login error:", err);
-      alert("Login failed. Please try again.");
+      alert("Login failed. Check your backend URL or network.");
     } finally {
       setLoading(false);
     }
   };
 
-  // 🌐 OAuth Login (Backend decides role)
   const handleSocialLogin = (provider: string) => {
-    // Redirect to backend OAuth endpoint
     window.location.href = `${OAUTH_URL}/${provider}`;
   };
 
   if (checkingAuth) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-gray-600 text-lg animate-pulse">
-          Checking session...
-        </div>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="text-gray-600 text-lg animate-pulse">Checking session...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-white">
       {/* Left Section (Login Form) */}
-      <div className="flex w-full lg:w-1/2 justify-center items-center p-8 bg-white">
-        <Card className="w-full max-w-md shadow-2xl border border-gray-200 rounded-2xl">
+      <div className="flex w-full lg:w-1/2 justify-center items-center p-8">
+        <Card className="w-full max-w-md shadow border border-gray-200 rounded-2xl">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl md:text-3xl font-semibold text-gray-800">
+            <CardTitle className="text-2xl md:text-3xl font-semibold text-black">
               Login to your account
             </CardTitle>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               Continue with your credentials or social account
             </p>
           </CardHeader>
 
           <CardContent className="space-y-5">
             <form onSubmit={handleLogin} className="space-y-4">
-              {/* Email */}
               <div>
-                <Label>Email</Label>
+                <Label className="text-black">Email</Label>
                 <Input
                   type="email"
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                
                 />
               </div>
 
-              {/* Password */}
               <div>
                 <div className="flex justify-between items-center">
-                  <Label>Password</Label>
-                  <a
-                    href="#"
-                    className="text-sm text-blue-600 hover:text-blue-800"
-                  >
+                  <Label className="text-black">Password</Label>
+                  <a href="#" className="text-gray-600 hover:text-gray-800 text-sm">
                     Forgot password?
                   </a>
                 </div>
@@ -157,56 +148,51 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                 
                 />
               </div>
 
-              {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 transition-all duration-300"
+                className="w-full bg-black text-white hover:bg-gray-800 font-semibold py-2.5"
                 disabled={loading}
               >
                 {loading ? "Logging in..." : "Login"}
               </Button>
 
-              {/* Divider */}
               <div className="flex items-center my-4">
                 <div className="flex-grow h-px bg-gray-300" />
-                <span className="mx-3 text-sm text-gray-500">or</span>
+                <span className="mx-3 text-sm text-gray-400">or</span>
                 <div className="flex-grow h-px bg-gray-300" />
               </div>
 
-              {/* Social Logins */}
               <div className="flex flex-col gap-2">
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex items-center justify-center gap-2 border-gray-300 hover:bg-gray-100"
+                  className="flex items-center justify-center gap-2 border-gray-300 hover:bg-gray-100 text-black"
                   onClick={() => handleSocialLogin("google")}
                 >
-                  <FaGoogle className="text-red-500 text-lg" /> Continue with
-                  Google
+                  <FaGoogle className="text-black text-lg" /> Continue with Google
                 </Button>
 
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex items-center justify-center gap-2 border-gray-300 hover:bg-gray-100"
+                  className="flex items-center justify-center gap-2 border-gray-300 hover:bg-gray-100 text-black"
                   onClick={() => handleSocialLogin("github")}
                 >
-                  <FaGithub className="text-gray-800 text-lg" /> Continue with
-                  GitHub
+                  <FaGithub className="text-black text-lg" /> Continue with GitHub
                 </Button>
               </div>
 
-              {/* Signup Redirect */}
               <p className="text-center text-sm text-gray-600 mt-4">
                 Don’t have an account?{" "}
                 <Button
                   type="button"
                   variant="link"
                   onClick={() => router.push("/auth/signup")}
-                  className="text-blue-600 hover:text-blue-800 p-0"
+                  className="text-black hover:underline p-0"
                 >
                   Sign up
                 </Button>
@@ -221,10 +207,10 @@ export default function LoginPage() {
         <img
           src="/1__k6mS5p92Oanaw7EIdcaow.png"
           alt="AI Interview Background"
-          className="absolute inset-0 w-full h-full object-cover scale-105 brightness-100"
+          className="absolute inset-0 w-full h-full object-cover scale-105 brightness-90"
         />
-        <div className="absolute top-20 left-20 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-20 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-20 w-72 h-72 bg-black/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-20 w-80 h-80 bg-black/10 rounded-full blur-3xl"></div>
       </div>
     </div>
   );
