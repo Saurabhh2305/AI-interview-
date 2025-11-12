@@ -1,3 +1,4 @@
+
 // "use client";
 
 // import React, { useEffect, useState } from "react";
@@ -9,7 +10,6 @@
 //   BarChart2,
 //   Settings,
 //   LogOut,
-//   User,
 //   Loader2,
 // } from "lucide-react";
 // import { useRouter } from "next/navigation";
@@ -18,16 +18,19 @@
 // import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 // import { Separator } from "@/components/ui/separator";
 
-// const BACKEND_URL = "http://localhost:8080/api/applications/user";
+// const BACKEND_URL_USER = "http://localhost:8080/api/applications/user";
+// const BACKEND_URL_JOB = "http://localhost:8080/api/applications/job";
 
 // export default function UserApplicationsPage() {
 //   const router = useRouter();
 //   const [applications, setApplications] = useState<any[]>([]);
 //   const [loading, setLoading] = useState(true);
+//   const [loadingJob, setLoadingJob] = useState(false);
 //   const [error, setError] = useState("");
 //   const [userName, setUserName] = useState("");
+//   const [jobId, setJobId] = useState("");
 
-//   // ✅ Fetch user name and applications
+//   // ✅ Fetch user name + applications
 //   useEffect(() => {
 //     const storedUser = localStorage.getItem("user");
 //     const user = storedUser ? JSON.parse(storedUser) : null;
@@ -39,7 +42,7 @@
 
 //     if (storedName) setUserName(storedName);
 
-//     const fetchApplications = async () => {
+//     const fetchApplicationsByUser = async () => {
 //       try {
 //         if (!userId) {
 //           setError("User not found. Please login again.");
@@ -47,7 +50,7 @@
 //           return;
 //         }
 
-//         const response = await fetch(`${BACKEND_URL}/${userId}`, {
+//         const response = await fetch(`${BACKEND_URL_USER}/${userId}`, {
 //           method: "GET",
 //           headers: {
 //             "Content-Type": "application/json",
@@ -55,15 +58,14 @@
 //           },
 //         });
 
-//         if (!response.ok) throw new Error("Failed to fetch applications");
-
 //         const result = await response.json();
-//         if (result.success && result.data) {
+
+//         if (response.ok && result.success && result.data) {
 //           setApplications(result.data);
 //         } else {
 //           setError(result.message || "No applications found.");
 //         }
-//       } catch (err: any) {
+//       } catch (err) {
 //         console.error(err);
 //         setError("Error loading applications.");
 //       } finally {
@@ -71,8 +73,47 @@
 //       }
 //     };
 
-//     fetchApplications();
+//     fetchApplicationsByUser();
 //   }, []);
+
+//   // ✅ Fetch applications by jobId
+//   const fetchApplicationsByJob = async () => {
+//     if (!jobId) return alert("Please enter a job ID.");
+//     setLoadingJob(true);
+//     setError("");
+
+//     try {
+//       const response = await fetch(`${BACKEND_URL_JOB}/${jobId}`, {
+//         method: "GET",
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization: `Bearer ${localStorage.getItem("token")}`,
+//         },
+//       });
+
+//       const result = await response.json();
+
+//       if (response.ok && result.success && result.data) {
+//         setApplications(result.data);
+//       } else {
+//         setApplications([]);
+//         setError(result.message || "No applications found for this Job ID.");
+//       }
+//     } catch (err) {
+//       console.error(err);
+//       setError("Error fetching job applications.");
+//     } finally {
+//       setLoadingJob(false);
+//     }
+//   };
+
+//   // ✅ Logout
+//   const handleLogout = () => {
+//     localStorage.removeItem("token");
+//     localStorage.removeItem("user");
+//     localStorage.removeItem("userName");
+//     router.push("/login");
+//   };
 
 //   return (
 //     <div className="flex bg-slate-50 min-h-screen text-slate-900">
@@ -119,7 +160,10 @@
 //         </div>
 
 //         <div className="p-4 border-t border-slate-200">
-//           <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white font-medium shadow transition">
+//           <button
+//             onClick={handleLogout}
+//             className="w-full flex items-center gap-3 px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white font-medium shadow transition"
+//           >
 //             <LogOut size={16} />
 //             Logout
 //           </button>
@@ -137,7 +181,7 @@
 //                 My Applications
 //               </h1>
 //               <p className="text-slate-500 mt-2 text-sm">
-//                 View and track your job applications.
+//                 View and track your job applications, or search by Job ID.
 //               </p>
 //             </div>
 
@@ -148,16 +192,35 @@
 //               >
 //                 Back to Dashboard
 //               </Button>
-//               <Avatar className="w-12 h-12 border shadow">
-//                 <AvatarImage src="/avatar.png" />
+//               <Avatar className="w-12 h-12 ">
+                
 //                 <AvatarFallback>
-//                   {userName ? userName.charAt(0).toUpperCase() : "U"}
+            
 //                 </AvatarFallback>
 //               </Avatar>
 //             </div>
 //           </div>
 
 //           <Separator className="mb-8 bg-slate-200" />
+
+//           {/* 🔍 Search by Job ID */}
+//           <div className="mb-6 flex flex-wrap items-center gap-3">
+//             <input
+//               type="number"
+//               placeholder="Enter Job ID"
+//               className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black"
+//               onChange={(e) => setJobId(e.target.value)}
+//               value={jobId}
+//             />
+//             <Button
+//               onClick={fetchApplicationsByJob}
+//               disabled={loadingJob}
+//               className="bg-black text-white hover:bg-slate-800 flex items-center gap-2"
+//             >
+//               {loadingJob && <Loader2 className="w-4 h-4 animate-spin" />}
+//               Search by Job ID
+//             </Button>
+//           </div>
 
 //           {/* Applications List */}
 //           <motion.div
@@ -176,7 +239,7 @@
 //               <p className="text-red-500 text-center">{error}</p>
 //             ) : applications.length === 0 ? (
 //               <p className="text-slate-600 text-center">
-//                 You haven’t applied to any jobs yet.
+//                 No applications found for this user or job ID.
 //               </p>
 //             ) : (
 //               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -221,6 +284,7 @@
 //   );
 // }
 
+// // ✅ Sidebar Link Component
 // function SidebarLink({
 //   icon,
 //   text,
@@ -259,6 +323,7 @@ import {
   Settings,
   LogOut,
   Loader2,
+  User,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -277,54 +342,67 @@ export default function UserApplicationsPage() {
   const [error, setError] = useState("");
   const [userName, setUserName] = useState("");
   const [jobId, setJobId] = useState("");
+  const [userPhoto, setUserPhoto] = useState("");
 
-  // ✅ Fetch user name + applications
+  // ✅ Load user info and photo from localStorage
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    const user = storedUser ? JSON.parse(storedUser) : null;
-    const userId = user?.id;
+    try {
+      const storedUser = localStorage.getItem("user");
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      const userId = user?.id;
 
-    const storedName =
-      localStorage.getItem("userName") ||
-      (storedUser ? JSON.parse(storedUser)?.name : "");
+      const storedName =
+        localStorage.getItem("userName") ||
+        (storedUser ? JSON.parse(storedUser)?.name : "");
 
-    if (storedName) setUserName(storedName);
+      if (storedName) setUserName(storedName);
 
-    const fetchApplicationsByUser = async () => {
-      try {
-        if (!userId) {
-          setError("User not found. Please login again.");
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch(`${BACKEND_URL_USER}/${userId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.success && result.data) {
-          setApplications(result.data);
-        } else {
-          setError(result.message || "No applications found.");
-        }
-      } catch (err) {
-        console.error(err);
-        setError("Error loading applications.");
-      } finally {
-        setLoading(false);
+      // ✅ Load user photo
+      const storedPhoto = localStorage.getItem("photoBase64");
+      if (storedPhoto) {
+        const isJPEG = storedPhoto.startsWith("/9j/");
+        setUserPhoto(`data:image/${isJPEG ? "jpeg" : "png"};base64,${storedPhoto}`);
       }
-    };
 
-    fetchApplicationsByUser();
+      // ✅ Fetch applications by user
+      const fetchApplicationsByUser = async () => {
+        try {
+          if (!userId) {
+            setError("User not found. Please login again.");
+            setLoading(false);
+            return;
+          }
+
+          const response = await fetch(`${BACKEND_URL_USER}/${userId}`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success && result.data) {
+            setApplications(result.data);
+          } else {
+            setError(result.message || "No applications found.");
+          }
+        } catch (err) {
+          console.error(err);
+          setError("Error loading applications.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchApplicationsByUser();
+    } catch (err) {
+      console.error("Error loading user:", err);
+    }
   }, []);
 
-  // ✅ Fetch applications by jobId
+  // ✅ Fetch applications by Job ID
   const fetchApplicationsByJob = async () => {
     if (!jobId) return alert("Please enter a job ID.");
     setLoadingJob(true);
@@ -357,10 +435,8 @@ export default function UserApplicationsPage() {
 
   // ✅ Logout
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userName");
-    router.push("/login");
+    localStorage.clear();
+    router.push("/auth/login");
   };
 
   return (
@@ -368,15 +444,28 @@ export default function UserApplicationsPage() {
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-slate-200 shadow-sm flex flex-col justify-between">
         <div>
-          <div className="p-6 border-b border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900">
-              User Panel
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Welcome, {userName || "Guest"}
-            </p>
+          {/* ✅ Sidebar User Info */}
+          <div className="p-6 border-b border-slate-200 flex items-center gap-3">
+            {userPhoto ? (
+              <img
+                src={userPhoto}
+                alt="User"
+                className="w-12 h-12 rounded-full object-cover border border-slate-300 shadow-sm"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                <User className="w-6 h-6 text-slate-500" />
+              </div>
+            )}
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">User Panel</h2>
+              <p className="text-sm text-slate-500 mt-1 truncate w-36">
+                Welcome, {userName || "Guest"}
+              </p>
+            </div>
           </div>
 
+          {/* Sidebar Links */}
           <nav className="p-4 space-y-2">
             <SidebarLink
               icon={<LayoutDashboard size={18} />}
@@ -433,6 +522,7 @@ export default function UserApplicationsPage() {
               </p>
             </div>
 
+            {/* ✅ Top-right Avatar (same as dashboard) */}
             <div className="flex items-center gap-4">
               <Button
                 className="hidden sm:inline-flex items-center gap-2 bg-black text-white hover:bg-slate-800 px-4 py-2"
@@ -440,11 +530,15 @@ export default function UserApplicationsPage() {
               >
                 Back to Dashboard
               </Button>
-              <Avatar className="w-12 h-12 border shadow">
-                <AvatarImage src="/avatar.png" />
-                <AvatarFallback>
-                  {userName ? userName.charAt(0).toUpperCase() : "U"}
-                </AvatarFallback>
+
+              <Avatar className="w-12 h-12 border border-slate-300 shadow-sm">
+                {userPhoto ? (
+                  <AvatarImage src={userPhoto} alt="User" />
+                ) : (
+                  <AvatarFallback>
+                    <User className="text-slate-500" />
+                  </AvatarFallback>
+                )}
               </Avatar>
             </div>
           </div>
@@ -532,7 +626,7 @@ export default function UserApplicationsPage() {
   );
 }
 
-// ✅ Sidebar Link Component
+/* ✅ Sidebar Link Component */
 function SidebarLink({
   icon,
   text,
@@ -558,4 +652,3 @@ function SidebarLink({
     </button>
   );
 }
-

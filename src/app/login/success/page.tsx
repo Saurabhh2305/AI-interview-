@@ -1,4 +1,3 @@
-// 
 "use client";
 
 import { useEffect, useState } from "react";
@@ -12,15 +11,17 @@ export default function LoginSuccess() {
 
   useEffect(() => {
     const code = searchParams.get("code");
+
+    // 🧩 No code → redirect to login
     if (!code) {
-      setMessage("No authorization code found. Redirecting...");
-      const timer = setTimeout(() => router.push("/auth/login"), 1500);
+      setMessage("⚠️ No authorization code found. Redirecting...");
+      const timer = setTimeout(() => router.push("/auth/login"), 2000);
       return () => clearTimeout(timer);
     }
 
     const handleOAuthLogin = async () => {
       try {
-        // Step 1: Exchange OAuth code for token
+        // 🔹 Step 1: Exchange OAuth code for token
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"}/api/auth/exchange`,
           {
@@ -36,40 +37,47 @@ export default function LoginSuccess() {
         const token = data?.data?.token;
         const user = data?.data?.user;
 
-        if (!token || !user) throw new Error("Invalid login response");
+        if (!token || !user) throw new Error("Invalid login response from server");
 
-        // Step 2: Extract role safely
-        const role = user?.role?.role || user?.role || "USER";
+        // 🔹 Step 2: Extract and normalize role
+        const role = (user?.role?.role || user?.role || "USER").toUpperCase();
 
-        // 🟢 Step 3: Save token & user info in localStorage
+        // 🔹 Step 3: Store in localStorage
         if (typeof window !== "undefined") {
-          localStorage.setItem("token", token);
-          localStorage.setItem("user", JSON.stringify(user));
-          localStorage.setItem("role", role.toUpperCase());
-          localStorage.setItem("recruiterId", user?.id || "");
+          const minimalUser = {
+            id: user.id,
+            name: user.name || user.fullName || user.displayName || "User",
+            email: user.email,
+            role,
+            hasPhoto: !!user.photo,
+            hasResume: !!user.resume,
+          };
 
-          // 👉 Store name separately for sidebar
-          const userName = user?.name || user?.fullName || user?.displayName || "User";
-          localStorage.setItem("userName", userName);
+          localStorage.setItem("token", token);
+          localStorage.setItem("user", JSON.stringify(minimalUser));
+          localStorage.setItem("role", role);
+          localStorage.setItem("recruiterId", user.id || "");
+          localStorage.setItem("userName", minimalUser.name);
         }
 
         setMessage("✅ Login successful! Redirecting...");
         setLoading(false);
 
-        // Step 4: Redirect based on role
-        const timer = setTimeout(() => {
-          const userRole = role.toLowerCase();
-          if (userRole === "admin") router.push("/dashboard/admin");
-          else if (userRole === "recruiter") router.push("/dashboard/recruiter");
-          else router.push("/dashboard/user");
-        }, 1500);
+        // 🔹 Step 4: Role-based redirect
+       // 🔹 Step 4: Role-based redirect (Simplified)
+const timer = setTimeout(() => {
+  if (role === "ADMIN") router.replace("/dashboard/admin");
+  else if (role === "RECRUITER") router.replace("/dashboard/recruiter");
+  else router.replace("/dashboard/user");
+}, 1500);
+
 
         return () => clearTimeout(timer);
-      } catch (err) {
+      } catch (err: any) {
         console.error("❌ OAuth Login Error:", err);
         setMessage("❌ Login failed. Redirecting to login...");
         setLoading(false);
-        const timer = setTimeout(() => router.push("/auth/login"), 2000);
+        const timer = setTimeout(() => router.push("/auth/login"), 2500);
         return () => clearTimeout(timer);
       }
     };
@@ -79,14 +87,19 @@ export default function LoginSuccess() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300">
-      <div className="bg-white rounded-2xl shadow-xl p-10 text-center max-w-md w-full transition-all duration-300">
-        <h1 className="text-2xl font-semibold text-gray-800 mb-4">Please Wait...</h1>
+      <div className="bg-white rounded-2xl shadow-2xl p-10 text-center max-w-md w-full transition-all duration-300">
+        <h1 className="text-3xl font-semibold text-gray-800 mb-3">
+          Please Wait...
+        </h1>
+
         <p
-          className={`text-gray-600 ${
+          className={`text-gray-600 transition-all duration-300 ${
             message.includes("✅")
               ? "text-green-600 font-medium"
               : message.includes("❌")
               ? "text-red-600 font-medium"
+              : message.includes("⚠️")
+              ? "text-yellow-600 font-medium"
               : ""
           }`}
         >
@@ -95,7 +108,10 @@ export default function LoginSuccess() {
 
         {loading && (
           <div className="flex justify-center mt-8">
-            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="relative w-10 h-10">
+              <div className="absolute w-full h-full border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <div className="absolute w-full h-full border-4 border-blue-300 border-b-transparent rounded-full animate-ping opacity-50" />
+            </div>
           </div>
         )}
       </div>

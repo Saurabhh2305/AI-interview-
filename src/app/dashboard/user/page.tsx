@@ -1,10 +1,10 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
-  FileText,
   Settings,
   LogOut,
   User,
@@ -12,7 +12,6 @@ import {
   ClipboardList,
   BarChart2,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,61 +21,121 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useRouter } from "next/navigation"; // ✅ added
+import { useRouter } from "next/navigation";
 
 export default function UserDashboard() {
-  const router = useRouter(); // ✅
-  const [userName, setUserName] = useState<string>("");
+  const router = useRouter();
+  const [userName, setUserName] = useState("Guest");
+  const [userPhoto, setUserPhoto] = useState("");
 
+  // ✅ Load user info + photo (base64) from localStorage
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedUser = localStorage.getItem("user");
-      const storedName =
-        localStorage.getItem("userName") ||
-        (storedUser ? JSON.parse(storedUser)?.name : "");
-      if (storedName) setUserName(storedName);
-    }
-  }, []);
+    const updateUserFromStorage = () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        const storedPhoto = localStorage.getItem("photoBase64");
+        const token = localStorage.getItem("token");
 
+        // 🚨 Redirect if not logged in
+        if (!storedUser || !token) {
+          router.replace("/auth/login");
+          return;
+        }
+
+        // ✅ Parse user info
+        const parsedUser = JSON.parse(storedUser);
+        setUserName(parsedUser?.fullName || parsedUser?.name || "Guest");
+
+        // ✅ Handle photo safely
+        if (storedPhoto) {
+          // Detect base64 type (jpeg/png)
+          const isJPEG = storedPhoto.startsWith("/9j/");
+          setUserPhoto(`data:image/${isJPEG ? "jpeg" : "png"};base64,${storedPhoto}`);
+        } else {
+          setUserPhoto("");
+        }
+      } catch (err) {
+        console.error("Error parsing user data:", err);
+        localStorage.clear();
+        router.replace("/auth/login");
+      }
+    };
+
+    updateUserFromStorage();
+
+    // ✅ Listen for updates from create-profile page
+    window.addEventListener("storage", updateUserFromStorage);
+    window.addEventListener("userUpdated", updateUserFromStorage);
+
+    return () => {
+      window.removeEventListener("storage", updateUserFromStorage);
+      window.removeEventListener("userUpdated", updateUserFromStorage);
+    };
+  }, [router]);
+
+  // ✅ Dashboard cards
   const cards = [
-  {
-  id: "applications",
-  title: "My Applications",
-  desc: "Track all the jobs you've applied to.",
-  cta: "View Applications",
-  icon: <ClipboardList className="w-5 h-5" />,
-  action: () => router.push("/dashboard/user/applications"), 
-},
-
+    {
+      id: "applications",
+      title: "My Applications",
+      desc: "Track all the jobs you've applied to.",
+      cta: "View Applications",
+      icon: <ClipboardList className="w-5 h-5" />,
+      action: () => router.push("/dashboard/user/applications"),
+    },
     {
       id: "saved",
       title: "Saved Jobs",
       desc: "Jobs you've saved for later.",
       cta: "View Saved Jobs",
       icon: <Bookmark className="w-5 h-5" />,
-      action: () => router.push("/dashboard/user/saved-jobs"), 
+      action: () => router.push("/dashboard/user/saved-jobs"),
     },
     {
       id: "profile",
       title: "Profile",
       desc: "Update your resume and personal info.",
-      cta: "create Profile",
+      cta: "Edit Profile",
       icon: <User className="w-5 h-5" />,
+      action: () => router.push("/dashboard/user/create-profile"),
     },
   ];
+
+  // ✅ Logout Handler
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push("/auth/login");
+  };
 
   return (
     <div className="flex bg-slate-50 min-h-screen text-slate-900">
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-slate-200 shadow-sm flex flex-col justify-between">
         <div>
-          <div className="p-6 border-b border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900">User Panel</h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Welcome, {userName || "Guest"}
-            </p>
+          {/* ✅ User Info */}
+          <div className="p-6 border-b border-slate-200 flex items-center gap-3">
+            {userPhoto ? (
+              <img
+                src={userPhoto}
+                alt="User"
+                className="w-12 h-12 rounded-full object-cover border border-slate-300 shadow-sm"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
+                <User className="w-6 h-6 text-slate-500" />
+              </div>
+            )}
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">
+                User Panel
+              </h2>
+              <p className="text-sm text-slate-500 mt-1 truncate w-36">
+                Welcome, {userName}
+              </p>
+            </div>
           </div>
 
+          {/* Sidebar Links */}
           <nav className="p-4 space-y-2">
             <SidebarLink
               icon={<LayoutDashboard size={18} />}
@@ -87,38 +146,41 @@ export default function UserDashboard() {
             <SidebarLink
               icon={<ClipboardList size={18} />}
               text="My Applications"
-              onClick={() => null}
+              onClick={() => router.push("/dashboard/user/applications")}
             />
             <SidebarLink
               icon={<Bookmark size={18} />}
               text="Saved Jobs"
-              onClick={() => router.push("/dashboard/user/saved-jobs")} // ✅ sidebar link
+              onClick={() => router.push("/dashboard/user/saved-jobs")}
             />
             <SidebarLink
               icon={<BarChart2 size={18} />}
               text="Job Stats"
-              onClick={() => null}
+              onClick={() => router.push("/dashboard/user/stats")}
             />
             <SidebarLink
               icon={<Settings size={18} />}
               text="Settings"
-              onClick={() => null}
+              onClick={() => router.push("/dashboard/user/settings")}
             />
           </nav>
         </div>
 
+        {/* Logout */}
         <div className="p-4 border-t border-slate-200">
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white font-medium shadow transition">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white font-medium shadow transition"
+          >
             <LogOut size={16} />
             Logout
           </button>
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* Main Content */}
       <main className="flex-1 ml-64 p-8">
         <div className="max-w-6xl mx-auto">
-          {/* Header */}
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-3">
@@ -130,22 +192,11 @@ export default function UserDashboard() {
               </p>
             </div>
 
-            <div className="flex items-center gap-4">
-              <Button className="hidden sm:inline-flex items-center gap-2 bg-black text-white hover:bg-slate-800 px-4 py-2">
-                Apply for a Job
-              </Button>
-              <Avatar className="w-12 h-12 border shadow">
-                <AvatarImage src="/avatar.png" />
-                <AvatarFallback>
-                  {userName ? userName.charAt(0).toUpperCase() : "U"}
-                </AvatarFallback>
-              </Avatar>
-            </div>
+        
           </div>
 
           <Separator className="mb-8 bg-slate-200" />
 
-          {/* Cards */}
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -186,6 +237,9 @@ export default function UserDashboard() {
   );
 }
 
+/* ---------------------------------------------
+   ✅ Sidebar Link Component
+---------------------------------------------- */
 function SidebarLink({
   icon,
   text,
@@ -211,5 +265,4 @@ function SidebarLink({
     </button>
   );
 }
-
 
