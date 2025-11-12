@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
@@ -23,57 +23,127 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 
+/* ---------------------------------------------
+   ✅ Types
+---------------------------------------------- */
+interface StoredUser {
+  id: number;
+  name?: string;
+  fullName?: string;
+  email?: string;
+  role?: string;
+  photo?: string;
+  hasPhoto?: boolean;
+  resume?: string;
+  hasResume?: boolean;
+}
+
+/* ---------------------------------------------
+   ✅ Sidebar Link Component
+---------------------------------------------- */
+function SidebarLink({
+  icon,
+  text,
+  onClick,
+  active = false,
+}: {
+  icon: React.ReactNode;
+  text: string;
+  onClick: () => void;
+  active?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm transition-all duration-200 ${
+        active
+          ? "bg-black text-white font-medium shadow-sm"
+          : "text-slate-700 hover:bg-slate-100 hover:text-black"
+      }`}
+    >
+      {icon}
+      {text}
+    </button>
+  );
+}
+
+/* ---------------------------------------------
+   ✅ Main Dashboard Component
+---------------------------------------------- */
 export default function UserDashboard() {
   const router = useRouter();
-  const [userName, setUserName] = useState("Guest");
-  const [userPhoto, setUserPhoto] = useState("");
+  const [userName, setUserName] = useState<string>("Guest");
+  const [userPhoto, setUserPhoto] = useState<string>("");
+  const [userResume, setUserResume] = useState<string | null>(null);
 
-  // ✅ Load user info + photo (base64) from localStorage
-  useEffect(() => {
-    const updateUserFromStorage = () => {
-      try {
-        const storedUser = localStorage.getItem("user");
-        const storedPhoto = localStorage.getItem("photoBase64");
-        const token = localStorage.getItem("token");
+  /* ---------------------------------------------
+     🧠 Load user info from LocalStorage
+  ---------------------------------------------- */
+  const updateUserFromStorage = useCallback(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      const storedPhoto = localStorage.getItem("photoBase64");
+      const storedResume = localStorage.getItem("resumeUrl"); // store this when user uploads resume
+      const token = localStorage.getItem("token");
 
-        // 🚨 Redirect if not logged in
-        if (!storedUser || !token) {
-          router.replace("/auth/login");
-          return;
-        }
-
-        // ✅ Parse user info
-        const parsedUser = JSON.parse(storedUser);
-        setUserName(parsedUser?.fullName || parsedUser?.name || "Guest");
-
-        // ✅ Handle photo safely
-        if (storedPhoto) {
-          // Detect base64 type (jpeg/png)
-          const isJPEG = storedPhoto.startsWith("/9j/");
-          setUserPhoto(`data:image/${isJPEG ? "jpeg" : "png"};base64,${storedPhoto}`);
-        } else {
-          setUserPhoto("");
-        }
-      } catch (err) {
-        console.error("Error parsing user data:", err);
-        localStorage.clear();
+      if (!storedUser || !token) {
         router.replace("/auth/login");
+        return;
       }
-    };
 
-    updateUserFromStorage();
+      const parsedUser: StoredUser = JSON.parse(storedUser);
+      setUserName(parsedUser?.fullName || parsedUser?.name || "Guest");
 
-    // ✅ Listen for updates from create-profile page
-    window.addEventListener("storage", updateUserFromStorage);
-    window.addEventListener("userUpdated", updateUserFromStorage);
+      // ✅ Check uploaded photo from storage or backend field
+      let photo = "";
+      if (storedPhoto) {
+        const isJPEG = storedPhoto.startsWith("/9j/");
+        photo = `data:image/${isJPEG ? "jpeg" : "png"};base64,${storedPhoto}`;
+      } else if (parsedUser.photo) {
+        photo = parsedUser.photo; // from backend if exists
+      }
 
-    return () => {
-      window.removeEventListener("storage", updateUserFromStorage);
-      window.removeEventListener("userUpdated", updateUserFromStorage);
-    };
+      setUserPhoto(photo || "");
+      setUserResume(storedResume || parsedUser.resume || null);
+
+      // ✅ Only redirect to create-profile if both missing
+      const hasPhoto = !!photo || parsedUser.hasPhoto;
+      const hasResume = !!storedResume || !!parsedUser.resume || parsedUser.hasResume;
+
+      if (!hasPhoto || !hasResume) {
+        console.log("Profile incomplete → redirecting to create-profile");
+        router.replace("/dashboard/user/create-profile");
+        return;
+      }
+      // ✅ If both exist, stay on this page
+    } catch (err) {
+      console.error("Error parsing user data:", err);
+      localStorage.clear();
+      router.replace("/auth/login");
+    }
   }, [router]);
 
-  // ✅ Dashboard cards
+  useEffect(() => {
+    updateUserFromStorage();
+    window.addEventListener("userUpdated", updateUserFromStorage);
+    window.addEventListener("storage", updateUserFromStorage);
+    return () => {
+      window.removeEventListener("userUpdated", updateUserFromStorage);
+      window.removeEventListener("storage", updateUserFromStorage);
+    };
+  }, [updateUserFromStorage]);
+
+  /* ---------------------------------------------
+     🚪 Logout Handler
+  ---------------------------------------------- */
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push("/auth/login");
+  };
+
+  /* ---------------------------------------------
+     📦 Dashboard Cards
+  ---------------------------------------------- */
   const cards = [
     {
       id: "applications",
@@ -101,15 +171,12 @@ export default function UserDashboard() {
     },
   ];
 
-  // ✅ Logout Handler
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push("/auth/login");
-  };
-
+  /* ---------------------------------------------
+     🧱 Render UI
+  ---------------------------------------------- */
   return (
     <div className="flex bg-slate-50 min-h-screen text-slate-900">
-      {/* Sidebar */}
+      {/* ================= Sidebar ================= */}
       <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-slate-200 shadow-sm flex flex-col justify-between">
         <div>
           {/* ✅ User Info */}
@@ -135,7 +202,7 @@ export default function UserDashboard() {
             </div>
           </div>
 
-          {/* Sidebar Links */}
+          {/* ✅ Sidebar Links */}
           <nav className="p-4 space-y-2">
             <SidebarLink
               icon={<LayoutDashboard size={18} />}
@@ -153,20 +220,10 @@ export default function UserDashboard() {
               text="Saved Jobs"
               onClick={() => router.push("/dashboard/user/saved-jobs")}
             />
-            <SidebarLink
-              icon={<BarChart2 size={18} />}
-              text="Job Stats"
-              onClick={() => router.push("/dashboard/user/stats")}
-            />
-            <SidebarLink
-              icon={<Settings size={18} />}
-              text="Settings"
-              onClick={() => router.push("/dashboard/user/settings")}
-            />
           </nav>
         </div>
 
-        {/* Logout */}
+        {/* ✅ Logout */}
         <div className="p-4 border-t border-slate-200">
           <button
             onClick={handleLogout}
@@ -178,7 +235,7 @@ export default function UserDashboard() {
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* ================= Main Content ================= */}
       <main className="flex-1 ml-64 p-8">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
@@ -191,11 +248,24 @@ export default function UserDashboard() {
                 Overview of your job applications
               </p>
             </div>
-
-        
           </div>
 
           <Separator className="mb-8 bg-slate-200" />
+
+          {/* ✅ Show uploaded resume link */}
+          {userResume && (
+            <div className="mb-8 bg-white border border-slate-100 p-4 rounded-lg shadow-sm">
+              <p className="text-slate-600 mb-2 font-medium">Your Uploaded Resume:</p>
+              <a
+                href={userResume}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline text-sm break-all"
+              >
+                {userResume}
+              </a>
+            </div>
+          )}
 
           <motion.div
             initial={{ opacity: 0, y: 15 }}
@@ -236,33 +306,3 @@ export default function UserDashboard() {
     </div>
   );
 }
-
-/* ---------------------------------------------
-   ✅ Sidebar Link Component
----------------------------------------------- */
-function SidebarLink({
-  icon,
-  text,
-  onClick,
-  active = false,
-}: {
-  icon: React.ReactNode;
-  text: string;
-  onClick: () => void;
-  active?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm transition-all duration-200 ${
-        active
-          ? "bg-black text-white font-medium shadow-sm"
-          : "text-slate-700 hover:bg-slate-100 hover:text-black"
-      }`}
-    >
-      {icon}
-      {text}
-    </button>
-  );
-}
-
