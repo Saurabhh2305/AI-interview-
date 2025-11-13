@@ -58,6 +58,7 @@ export default function LoginSuccess() {
           localStorage.setItem("role", role);
           localStorage.setItem("recruiterId", user.id || "");
           localStorage.setItem("userName", minimalUser.name);
+          
         }
 
         setMessage("✅ Login successful! Redirecting...");
