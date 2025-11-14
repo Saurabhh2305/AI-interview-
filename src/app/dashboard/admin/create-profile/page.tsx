@@ -7,33 +7,37 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export default function CreateProfile() {
+export default function AdminCreateProfile() {
   const router = useRouter();
   const [photo, setPhoto] = useState<string | null>(null);
-  const [existingPhoto, setExistingPhoto] = useState<string | null>(null);
 
-  // ✅ Load saved photo if already uploaded before
+  // Load previously saved admin photo
   useEffect(() => {
-    const savedPhoto = localStorage.getItem("adminPhoto");
-    if (savedPhoto) {
-      setExistingPhoto(savedPhoto);
-      setPhoto(savedPhoto);
-    }
+    const adminPhoto = localStorage.getItem("adminPhoto");
+    if (adminPhoto) setPhoto(adminPhoto);
   }, []);
 
+  // Handle photo upload
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setPhoto(reader.result as string);
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => setPhoto(reader.result as string);
+    reader.readAsDataURL(file);
   };
 
+  // Save admin photo
   const handleSave = () => {
-    if (!photo) return alert("Please upload a photo first!");
-    localStorage.setItem("adminPhoto", photo); // ✅ persist forever
-    alert("Profile photo saved successfully!");
+    if (!photo) {
+      alert("Please upload a photo first!");
+      return;
+    }
+
+    // Save only for admin — no conflict with user/recruiter
+    localStorage.setItem("adminPhoto", photo);
+
+    alert("Admin profile photo saved successfully!");
     router.push("/dashboard/admin");
   };
 
@@ -42,7 +46,7 @@ export default function CreateProfile() {
       <Card className="w-full max-w-md bg-white border border-slate-200 shadow-md rounded-xl">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-bold text-slate-800">
-            {existingPhoto ? "Update Profile Photo" : "Upload Your Photo"}
+            {photo ? "Update Admin Photo" : "Upload Admin Photo"}
           </CardTitle>
         </CardHeader>
 
@@ -61,7 +65,7 @@ export default function CreateProfile() {
 
           <Button
             onClick={handleSave}
-            className="w-full bg-black  text-white"
+            className="w-full bg-black text-white"
           >
             Save Photo
           </Button>

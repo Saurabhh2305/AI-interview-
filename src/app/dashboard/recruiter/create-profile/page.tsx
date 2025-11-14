@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,8 +10,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function RecruiterCreateProfile() {
   const router = useRouter();
   const [photo, setPhoto] = useState<string | null>(null);
+  const [recruiterId, setRecruiterId] = useState<string>("");
 
-  // 🖼 Handle photo upload
+  // Load recruiter info
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      router.push("/auth/login");
+      return;
+    }
+
+    const parsed = JSON.parse(storedUser);
+    const id = parsed.email || parsed.id || "defaultRecruiter";
+    setRecruiterId(id);
+
+    // Load existing photo
+    const existingPhoto = localStorage.getItem(`recruiterPhoto_${id}`);
+    if (existingPhoto) setPhoto(existingPhoto);
+  }, [router]);
+
+  // Photo upload
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -19,37 +38,16 @@ export default function RecruiterCreateProfile() {
     reader.readAsDataURL(file);
   };
 
-  // 💾 Save recruiter photo
+  // Save photo
   const handleSave = () => {
     if (!photo) {
-      alert("⚠️ Please upload your photo before saving!");
+      alert("⚠️ Please upload a photo.");
       return;
     }
 
-    // Get recruiter info
-    const storedRecruiter = localStorage.getItem("user");
-    let recruiterId = "defaultRecruiter";
-    let recruiterData = null;
-
-    if (storedRecruiter) {
-      try {
-        recruiterData = JSON.parse(storedRecruiter);
-        recruiterId = recruiterData.email || recruiterData.id || "defaultRecruiter";
-      } catch (err) {
-        console.error("Error parsing recruiter data", err);
-      }
-    }
-
-    // Store recruiter photo
     localStorage.setItem(`recruiterPhoto_${recruiterId}`, photo);
 
-    // Update main user object
-    if (recruiterData) {
-      recruiterData.photo = photo;
-      localStorage.setItem("user", JSON.stringify(recruiterData));
-    }
-
-    alert("✅ Profile photo uploaded successfully!");
+    alert("✅ Profile photo saved!");
     router.push("/dashboard/recruiter");
   };
 
@@ -58,7 +56,7 @@ export default function RecruiterCreateProfile() {
       <Card className="w-full max-w-lg shadow-md">
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-slate-800">
-            Upload Your Recruiter Profile Photo
+            Upload Recruiter Photo
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
