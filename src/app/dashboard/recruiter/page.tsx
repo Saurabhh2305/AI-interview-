@@ -406,7 +406,7 @@ export default function RecruiterDashboard() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedId = localStorage.getItem("recruiterId");
-      setRecruiterId(storedId ? Number(storedId) : 5);
+      setRecruiterId(storedId ? Number(storedId) :5);
 
       const storedRole = localStorage.getItem("role");
       setRole(storedRole ? storedRole.toUpperCase() : null);
