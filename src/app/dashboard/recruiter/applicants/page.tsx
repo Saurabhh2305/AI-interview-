@@ -121,14 +121,14 @@ export default function UserApplicationsPage() {
         <div>
           <div className="p-6 border-b border-slate-200">
             <h2 className="text-lg font-semibold text-slate-900">
-              User Panel
+              Recuiter Pannel
             </h2>
             <p className="text-sm text-slate-500 mt-1">
               Welcome, {userName || "Guest"}
             </p>
           </div>
 
-          <nav className="p-4 space-y-2">
+          {/* <nav className="p-4 space-y-2">
             <SidebarLink
               icon={<LayoutDashboard size={18} />}
               text="Dashboard Overview"
@@ -155,9 +155,9 @@ export default function UserApplicationsPage() {
               text="Settings"
               onClick={() => null}
             />
-          </nav>
+          </nav> */}
         </div>
-
+{/* 
         <div className="p-4 border-t border-slate-200">
           <button
             onClick={handleLogout}
@@ -166,7 +166,7 @@ export default function UserApplicationsPage() {
             <LogOut size={16} />
             Logout
           </button>
-        </div>
+        </div> */}
       </aside>
 
       {/* Main Content */}
@@ -185,18 +185,7 @@ export default function UserApplicationsPage() {
             </div>
 
             <div className="flex items-center gap-4">
-              <Button
-                className="hidden sm:inline-flex items-center gap-2 bg-black text-white hover:bg-slate-800 px-4 py-2"
-                onClick={() => router.push("/dashboard/user")}
-              >
-                Back to Dashboard
-              </Button>
-              <Avatar className="w-12 h-12 border shadow">
-                <AvatarImage src="/avatar.png" />
-                <AvatarFallback>
-                  {userName ? userName.charAt(0).toUpperCase() : "U"}
-                </AvatarFallback>
-              </Avatar>
+              
             </div>
           </div>
 

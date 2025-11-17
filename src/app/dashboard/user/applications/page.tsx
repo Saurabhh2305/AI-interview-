@@ -133,7 +133,7 @@ export default function UserApplicationsPage() {
         <div>
           {/* ✅ Sidebar User Info */}
           <div className="p-6 border-b border-slate-200 flex items-center gap-3">
-            {userPhoto ? (
+            {/* {userPhoto ? (
               <img
                 src={userPhoto}
                 alt="User"
@@ -143,7 +143,7 @@ export default function UserApplicationsPage() {
               <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
                 <User className="w-6 h-6 text-slate-500" />
               </div>
-            )}
+            )} */}
             <div>
               <h2 className="text-lg font-semibold text-slate-900">User Panel</h2>
               <p className="text-sm text-slate-500 mt-1 truncate w-36">
