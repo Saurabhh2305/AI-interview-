@@ -21,6 +21,8 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
+import { Briefcase } from "lucide-react";
+
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 
@@ -223,11 +225,12 @@ export default function SavedJobsPage() {
               onClick={() => router.push("/dashboard/user/applications")}
             />
             <SidebarLink
-              icon={<Bookmark size={18} />}
-              text="Saved Jobs"
+              icon={<Briefcase size={18} />}
+              text="Jobs"
               active
               onClick={() => router.push("/dashboard/user/saved-jobs")}
             />
+
             <SidebarLink
               icon={<BarChart2 size={18} />}
               text="Job Stats"
@@ -262,7 +265,7 @@ export default function SavedJobsPage() {
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-3">
                 <Bookmark className="w-7 h-7 text-slate-600" />
-                Saved Jobs
+                Jobs
               </h1>
               <p className="text-slate-500 mt-2 text-sm">
                 Upload your resume and apply to jobs easily.
@@ -403,11 +406,10 @@ function SidebarLink({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm transition-all duration-200 ${
-        active
+      className={`flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm transition-all duration-200 ${active
           ? "bg-black text-white font-medium shadow-sm"
           : "text-slate-700 hover:bg-slate-100 hover:text-black"
-      }`}
+        }`}
     >
       {icon}
       {text}

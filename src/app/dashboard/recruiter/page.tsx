@@ -543,15 +543,7 @@ export default function RecruiterDashboard() {
               Create Profile
             </Button>
 
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => router.push("/dashboard/recruiter/update-profile")}
-            >
-              <Settings className="mr-3 h-5 w-5" />
-              Update Profile
-            </Button>
-
+           
             <Button
               variant="ghost"
               className="w-full justify-start"

@@ -11,6 +11,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
+import { UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
@@ -81,35 +82,47 @@ export default function AdminDashboard() {
             </h1>
             <p className="text-sm text-slate-500 mt-1">{adminEmail}</p>
           </div>
+<nav className="p-4 space-y-1">
+  <SidebarItem
+    icon={<LayoutDashboard size={18} />}
+    label="Dashboard Overview"
+    onClick={() => router.push("/dashboard/admin")}
+    active
+  />
+    
+  <SidebarItem
+  icon={<UserPlus size={18} />}
+  label="Create Profile"
+  onClick={() => router.push("/dashboard/admin/create-profile")}
+/>
 
-          <nav className="p-4 space-y-1">
-            <SidebarItem
-              icon={<LayoutDashboard size={18} />}
-              label="Dashboard Overview"
-              onClick={() => router.push("/dashboard/admin")}
-              active
-            />
-            <SidebarItem
-              icon={<Users size={18} />}
-              label="Manage Users"
-              onClick={() => router.push("/dashboard/admin/users")}
-            />
-            <SidebarItem
-              icon={<Briefcase size={18} />}
-              label="Job Listings"
-              onClick={() => router.push("/dashboard/admin/jobs")}
-            />
-            <SidebarItem
-              icon={<FileBarChart size={18} />}
-              label="Reports & Analytics"
-              onClick={() => router.push("/dashboard/admin/reports")}
-            />
-            <SidebarItem
-              icon={<Settings size={18} />}
-              label="System Settings"
-              onClick={() => router.push("/dashboard/admin/settings")}
-            />
-          </nav>
+  <SidebarItem
+    icon={<Users size={18} />}
+    label="Manage Users"
+    onClick={() => router.push("/dashboard/admin/users")}
+  />
+
+  <SidebarItem
+    icon={<Briefcase size={18} />}
+    label="Job Listings"
+    onClick={() => router.push("/dashboard/admin/jobs")}
+  />
+
+  <SidebarItem
+    icon={<FileBarChart size={18} />}
+    label="Reports & Analytics"
+    onClick={() => router.push("/dashboard/admin/reports")}
+  />
+
+  <SidebarItem
+    icon={<Settings size={18} />}
+    label="System Settings"
+    onClick={() => router.push("/dashboard/admin/settings")}
+  />
+
+
+</nav>
+
         </div>
 
         <div className="p-4 border-t border-slate-200">
