@@ -247,6 +247,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { toast } from "sonner"
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -307,7 +308,8 @@ const handleUpdateJob = async () => {
     });
 
     if (response.data.success) {
-      alert("✅ Job Updated Successfully!");
+     
+      toast("✅ Job Updated Successfully!")
 
       const updatedJobs = jobs.map((job) =>
         job.jobId === jobId ? response.data.data : job
@@ -317,11 +319,11 @@ const handleUpdateJob = async () => {
       sessionStorage.setItem("recruiterJobs", JSON.stringify(updatedJobs));
       setOpenEdit(false);
     } else {
-      alert("❌ Update failed!");
+      toast("❌ Update failed!");
     }
   } catch (error) {
     console.error(error);
-    alert("❌ Error updating job");
+    toast("❌ Error updating job");
   }
 };
 

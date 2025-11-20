@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner"
 
 export default function CreateProfile() {
   const router = useRouter();
@@ -49,12 +50,12 @@ export default function CreateProfile() {
   // ✅ Save data locally
   const handleSave = () => {
     if (!photo || !resume) {
-      alert("Please upload both photo and resume!");
+      toast("Please upload both photo and resume!");
       return;
     }
 
     if (!user) {
-      alert("User not found! Please log in again.");
+      toast("User not found! Please log in again.");
       router.push("/auth/login");
       return;
     }
@@ -64,7 +65,7 @@ export default function CreateProfile() {
     localStorage.setItem(`userPhoto_${user.email || user.id}`, photo);
     localStorage.setItem(`userResume_${user.email || user.id}`, resume);
 
-    alert("✅ Profile updated successfully!");
+    toast("✅ Profile updated successfully!");
     router.push("/dashboard/user");
   };
 

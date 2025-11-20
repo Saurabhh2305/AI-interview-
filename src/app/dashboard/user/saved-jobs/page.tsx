@@ -25,6 +25,7 @@ import { Briefcase } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner"
 
 /* ✅ Spinner */
 function Spinner() {
@@ -135,13 +136,13 @@ export default function SavedJobsPage() {
   /* ✅ Apply for job */
   const handleApply = async (jobId: number) => {
     if (!userId || isNaN(Number(userId))) {
-      alert("❌ Missing or invalid userId. Please login again.");
+      toast("Missing or invalid userId. Please login again.");
       return;
     }
 
     const jobFile = jobFiles[jobId];
     if (!jobFile?.resume) {
-      alert("Please upload your resume first.");
+      toast("Please upload your resume first.");
       return;
     }
 
@@ -173,16 +174,16 @@ export default function SavedJobsPage() {
       const data = await res.json();
 
       if (res.ok && data?.success !== false) {
-        alert(`✅ Successfully applied for Job ID: ${jobId}`);
+        toast(`✅ Successfully applied for Job ID: ${jobId}`);
         setJobFiles((prev) => ({
           ...prev,
           [jobId]: { ...prev[jobId], applied: true },
         }));
       } else {
-        alert(`❌ Failed: ${data?.message || "Unknown error"}`);
+        toast(`❌ Failed: ${data?.message || "Unknown error"}`);
       }
     } catch (err: any) {
-      alert(`Error: ${err.message}`);
+      toast(`Error: ${err.message}`);
     } finally {
       setApplyingJobId(null);
     }
@@ -247,7 +248,7 @@ export default function SavedJobsPage() {
         <div className="p-4 border-t border-slate-200">
           <button
             onClick={() => {
-              localStorage.clear();
+            
               router.push("/");
             }}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white font-medium shadow transition"

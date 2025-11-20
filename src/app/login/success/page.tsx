@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -31,13 +32,30 @@ export default function LoginSuccess() {
           }
         );
 
-        if (!res.ok) throw new Error(`OAuth exchange failed with status ${res.status}`);
+        if (!res.ok)
+          throw new Error(`OAuth exchange failed with status ${res.status}`);
 
         const data = await res.json();
+
         const token = data?.data?.token;
         const user = data?.data?.user;
+        const passwordRequired = data?.data?.password_required;
 
-        if (!token || !user) throw new Error("Invalid login response from server");
+        if (!token || !user)
+          throw new Error("Invalid login response from server");
+
+        // 🔥 If password is required → redirect to SET PASSWORD page
+        if (passwordRequired === true) {
+          localStorage.setItem("temp_token", token); // temporary store
+          setMessage("🔐 Please set your password...");
+          setLoading(false);
+
+          const timer = setTimeout(() => {
+            router.replace("/auth/set-password");
+          }, 1200);
+
+          return () => clearTimeout(timer);
+        }
 
         // 🔹 Step 2: Extract and normalize role
         const role = (user?.role?.role || user?.role || "USER").toUpperCase();
@@ -58,26 +76,25 @@ export default function LoginSuccess() {
           localStorage.setItem("role", role);
           localStorage.setItem("recruiterId", user.id || "");
           localStorage.setItem("userName", minimalUser.name);
-          
         }
 
+        // UI Update
         setMessage("✅ Login successful! Redirecting...");
         setLoading(false);
 
         // 🔹 Step 4: Role-based redirect
-       // 🔹 Step 4: Role-based redirect (Simplified)
-const timer = setTimeout(() => {
-  if (role === "ADMIN") router.replace("/dashboard/admin");
-  else if (role === "RECRUITER") router.replace("/dashboard/recruiter");
-  else router.replace("/dashboard/user");
-}, 1500);
-
+        const timer = setTimeout(() => {
+          if (role === "ADMIN") router.replace("/dashboard/admin");
+          else if (role === "RECRUITER") router.replace("/dashboard/recruiter");
+          else router.replace("/dashboard/user");
+        }, 1500);
 
         return () => clearTimeout(timer);
-      } catch (err: any) {
+      } catch (err) {
         console.error("❌ OAuth Login Error:", err);
         setMessage("❌ Login failed. Redirecting to login...");
         setLoading(false);
+
         const timer = setTimeout(() => router.push("/auth/login"), 2500);
         return () => clearTimeout(timer);
       }
@@ -99,6 +116,8 @@ const timer = setTimeout(() => {
               ? "text-green-600 font-medium"
               : message.includes("❌")
               ? "text-red-600 font-medium"
+              : message.includes("🔐")
+              ? "text-blue-600 font-medium"
               : message.includes("⚠️")
               ? "text-yellow-600 font-medium"
               : ""

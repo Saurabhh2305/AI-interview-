@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner"
 
 export default function AdminCreateProfile() {
   const router = useRouter();
@@ -30,14 +31,14 @@ export default function AdminCreateProfile() {
   // Save admin photo
   const handleSave = () => {
     if (!photo) {
-      alert("Please upload a photo first!");
+      toast("Please upload a photo first!");
       return;
     }
 
     // Save only for admin — no conflict with user/recruiter
     localStorage.setItem("adminPhoto", photo);
 
-    alert("Admin profile photo saved successfully!");
+    toast("✅ Admin profile photo saved successfully!");
     router.push("/dashboard/admin");
   };
 

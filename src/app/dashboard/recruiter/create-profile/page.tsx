@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner"
 
 export default function RecruiterCreateProfile() {
   const router = useRouter();
@@ -41,13 +42,13 @@ export default function RecruiterCreateProfile() {
   // Save photo
   const handleSave = () => {
     if (!photo) {
-      alert("⚠️ Please upload a photo.");
+      toast("⚠️ Please upload a photo.");
       return;
     }
 
     localStorage.setItem(`recruiterPhoto_${recruiterId}`, photo);
 
-    alert("✅ Profile photo saved!");
+    toast("✅ Profile photo saved!");
     router.push("/dashboard/recruiter");
   };
 
