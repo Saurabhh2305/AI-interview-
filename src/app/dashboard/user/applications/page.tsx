@@ -247,15 +247,7 @@ const handleLogout = () => {
                 Back to Dashboard
               </Button>
 
-              <Avatar className="w-12 h-12 border border-slate-300 shadow-sm">
-                {userPhoto ? (
-                  <AvatarImage src={userPhoto} alt="User" />
-                ) : (
-                  <AvatarFallback>
-                    <User className="text-slate-500" />
-                  </AvatarFallback>
-                )}
-              </Avatar>
+             
             </div>
           </div>
 

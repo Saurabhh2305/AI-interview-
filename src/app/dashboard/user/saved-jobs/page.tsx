@@ -195,17 +195,7 @@ export default function SavedJobsPage() {
       <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-slate-200 shadow-sm flex flex-col justify-between">
         <div>
           <div className="p-6 border-b border-slate-200 flex items-center gap-3">
-            {/* {userPhoto ? (
-              <img
-                src={userPhoto}
-                alt="User"
-                className="w-12 h-12 rounded-full object-cover border border-slate-300 shadow-sm"
-              />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                <User className="w-6 h-6 text-slate-500" />
-              </div>
-            )} */}
+          
             <div>
               <h2 className="text-lg font-semibold text-slate-900">User Panel</h2>
               <p className="text-sm text-slate-500 mt-1 truncate w-36">
@@ -248,7 +238,7 @@ export default function SavedJobsPage() {
         <div className="p-4 border-t border-slate-200">
           <button
             onClick={() => {
-            
+
               router.push("/");
             }}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white font-medium shadow transition"
@@ -275,22 +265,13 @@ export default function SavedJobsPage() {
 
             <div className="flex items-center gap-4">
               <Button
-                variant="outline"
-                className="border border-slate-300 text-slate-700 hover:bg-slate-100"
+                className="hidden sm:inline-flex items-center gap-2 bg-black text-white hover:bg-slate-800 px-4 py-2"
                 onClick={() => router.push("/dashboard/user")}
               >
                 Back to Dashboard
               </Button>
 
-              <Avatar className="w-12 h-12 border border-slate-300 shadow-sm">
-                {userPhoto ? (
-                  <AvatarImage src={userPhoto} alt="User" />
-                ) : (
-                  <AvatarFallback>
-                    <User className="w-6 h-6 text-slate-500" />
-                  </AvatarFallback>
-                )}
-              </Avatar>
+
             </div>
           </div>
 
@@ -408,8 +389,8 @@ function SidebarLink({
     <button
       onClick={onClick}
       className={`flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm transition-all duration-200 ${active
-          ? "bg-black text-white font-medium shadow-sm"
-          : "text-slate-700 hover:bg-slate-100 hover:text-black"
+        ? "bg-black text-white font-medium shadow-sm"
+        : "text-slate-700 hover:bg-slate-100 hover:text-black"
         }`}
     >
       {icon}
